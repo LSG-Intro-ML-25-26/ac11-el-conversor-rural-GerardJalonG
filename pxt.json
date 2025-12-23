@@ -3,7 +3,8 @@
     "description": "",
     "dependencies": {
         "device": "*",
-        "color-coded-tilemap": "*"
+        "color-coded-tilemap": "*",
+        "arcade-mini-menu": "github:riknoll/arcade-mini-menu#v0.0.1"
     },
     "files": [
         "main.blocks",
