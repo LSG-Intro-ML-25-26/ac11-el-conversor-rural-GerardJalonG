@@ -9,6 +9,24 @@ class SpriteKind:
     casa = SpriteKind.create()
     tocon = SpriteKind.create()
 
+target: Sprite = None
+leña = 0
+inv_horses = 0
+inv_chickens = 0
+inv_potatoes = 0
+inv_cows = 0
+inv_eggs = 0
+cost = 0
+qty = 0
+price = 0
+name = ""
+k = 0
+trade_lock = False
+Backpack = None
+def on_overlap_trade(player2: Sprite, itemSprite: Sprite):
+    global target
+    target = itemSprite
+
 def on_on_overlap(sprite, otherSprite):
     if controller.A.is_pressed():
         music.play(music.string_playable("- - - - - A F - ", 200),
@@ -26,7 +44,8 @@ def on_down_pressed():
 controller.down.on_event(ControllerButtonEvent.PRESSED, on_down_pressed)
 
 def on_on_destroyed(sprite3):
-    global leña, arbol
+    global arbol, leña
+    tiles.set_wall_at(arbol.tilemap_location(), False)
     leña += 1
     pause(2000)
     arbol = sprites.create(img("""
@@ -65,7 +84,22 @@ def on_on_destroyed(sprite3):
             """),
         SpriteKind.tree)
     tiles.place_on_random_tile(arbol, sprites.castle.tile_grass2)
+    tiles.set_wall_at(arbol.tilemap_location(), True)
 sprites.on_destroyed(SpriteKind.tree, on_on_destroyed)
+
+def trade_price(kind: number):
+    if kind == SpriteKind.egg:
+        return 3
+    elif kind == SpriteKind.cow:
+        return 5
+    elif kind == SpriteKind.potato:
+        return 2
+    elif kind == SpriteKind.chicken:
+        return 6
+    elif kind == SpriteKind.horse:
+        return 12
+    else:
+        return 999999
 
 def on_right_pressed():
     animation.run_image_animation(nena,
@@ -85,142 +119,62 @@ def on_left_pressed():
         False)
 controller.left.on_event(ControllerButtonEvent.PRESSED, on_left_pressed)
 
-def on_b_pressed():
-    global Backpack
-    Backpack = miniMenu.create_menu_from_array([miniMenu.create_menu_item("Huevos",
-                img("""
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . e e . . . . . . .
-                    . . . . . . e d d e . . . . . .
-                    . . . . . e d d d 4 e . . . . .
-                    . . . . e d d 1 1 d 4 e . . . .
-                    . . . . e d 1 1 1 d d e . . . .
-                    . . . e d 1 1 1 1 d d 4 c . . .
-                    . . . e d 1 1 1 1 d d 4 c . . .
-                    . . c d d 1 1 1 d d d 4 e c . .
-                    . . c 4 d 1 1 d d d 4 e e c . .
-                    . . c e 4 d d 4 4 4 e e e c . .
-                    . . . c e 4 4 4 4 4 e e c . . .
-                    . . . c e e 4 4 4 e e e c . . .
-                    . . . . c c e e e e c c . . . .
-                    . . . . . . c c c c . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    """)),
-            miniMenu.create_menu_item("Vacas",
-                img("""
-                    . . . . . . . . . . . . . . . .
-                    b . . . d d d b b d . c b . . .
-                    d b d d 1 1 b 1 1 1 d d b . . .
-                    d d c 1 1 1 1 1 1 1 b d c . . .
-                    d d 1 1 1 1 1 1 1 b 1 b . . . .
-                    c 1 1 1 1 1 1 1 1 1 b b . . . .
-                    1 1 1 1 1 1 1 1 1 1 b b b . . .
-                    1 b b b 1 1 1 1 1 1 b b d c c .
-                    b b b b b 1 1 1 1 1 1 1 d c c c
-                    b f f f b 1 1 1 1 f f 1 d c c c
-                    b f f f b 1 1 1 1 f f 1 d c c c
-                    b f f f c c c c c f f 1 b c c f
-                    b c c c c b b b b c 1 1 b f f .
-                    1 1 b c c f b b f c 1 1 b . . .
-                    b 1 1 f c c c c c f 1 b . . . .
-                    1 b b b f f f f f b b . . . . .
-                    """)),
-            miniMenu.create_menu_item("Patatas",
-                img("""
-                    . . . . . . . . . . . . . . . .
-                    . . . . . . . . . c c f f . . .
-                    . . . . . . . . c 4 4 e c f . .
-                    . . . . . . . c 4 4 4 e e c f .
-                    . 3 . . . . c e 4 4 e e e c f .
-                    . . . . c c e e e e e e c c f .
-                    . . . c e 4 4 e e e e c c c f .
-                    . . c e 4 4 4 4 e e e e c f . .
-                    . c e 4 4 4 4 4 e e e e c f . .
-                    . c e 4 4 4 4 e e e e e f . . .
-                    . c e e 4 4 e e e e e c f . . .
-                    . f e e e e e e e e c f . . . .
-                    . f c e e e e e e c f . . . . .
-                    . . f c e e c c f f . . . . . .
-                    . . . f f f f f . . . . . . . .
-                    . . . . . . . . . . . . . . . .
-                    """)),
-            miniMenu.create_menu_item("Gallinas",
-                img("""
-                    . . . . . . . . . . . . . . . . .
-                    . . . . . c c c . . . . . . . . .
-                    . . . . c e e e c . . . . . . . .
-                    . . . c e e e e e c . . . . . . .
-                    . . . c e e c c c . . . . . . . .
-                    . . . c e e 1 1 e c . . . c . . .
-                    . . . c 1 1 1 1 1 e c c c d c . .
-                    . . . c 4 4 c 1 1 1 e e d d c . .
-                    . . . 4 4 4 1 1 1 1 1 d e b c . .
-                    . . . c e e 1 1 d 1 1 1 b e c . .
-                    . . . c 1 1 1 d b 1 1 e b c . . .
-                    . . . c d d d d d e e d c . . . .
-                    . . . . c d d d d d d c . . . . .
-                    . . . . c c c c e e c c . . . . .
-                    . . . . c e e 4 4 c c c . . . . .
-                    . . . . . c c c c c c . . . . . .
-                    """)),
-            miniMenu.create_menu_item("Caballos",
-                img("""
-                    .........ff.....
-                    ........fccff...
-                    ffffffffcccff...
-                    ffffffcccccff...
-                    fffcffcccccff...
-                    fcfccffcccfff...
-                    ccfcfcccccccf...
-                    ccfcfccffcccff..
-                    ccfffcc1ffffff..
-                    fffffcc1cfffff..
-                    fffffbb1bf1cff..
-                    fffcccbbccccff..
-                    ffffcccccceeff..
-                    ffffffcceecccf..
-                    cfff..fceccccf..
-                    fff....cecccff..
-                    ff....fffccccf..
-                    f....ff..ffff...
-                    ....ff..........
-                    """))])
-    Backpack.set_frame(img("""
-        8888.....88....888....888...8888.
-        867788..8768..86768..8678.887768.
-        8767768.877788676768877788677678.
-        87767768676778776778776786776778.
-        .877876667767877677876778678778..
-        .867786686766867676866766687768..
-        ..8666868867688686886768686668...
-        .88866688888888888888888866688...
-        8777768866666666666666668886688..
-        86767768666666666666666688677778.
-        .8776678666666666666666686776768.
-        ..87766866666666666666668766778..
-        ..8888886666666666666666866778...
-        .86776886666666666666666888888...
-        8677776866666666666666668867768..
-        87666688666666666666666686777768.
-        86777768666666666666666688666678.
-        .8677688666666666666666686777768.
-        ..88888866666666666666668867768..
-        ..8776686666666666666666888888...
-        .87766786666666666666666866778...
-        8676776866666666666666668766778..
-        87777688666666666666666686776768.
-        .8866888666666666666666688677778.
-        ..88666888888888888888888666888..
-        ..8666868676886868867688686668...
-        .867786667668676768667686687768..
-        .877876877678776778767766678778..
-        87767768767787767787767686776778.
-        876776887778867676887778.8677678.
-        867788.8768..86768..8678..887768.
-        8888...888....888....88.....8888.
-        .................................
-        """))
-controller.B.on_event(ControllerButtonEvent.PRESSED, on_b_pressed)
+def on_a_pressed():
+    global trade_lock, k, name, price, qty, cost, inv_eggs, inv_cows, inv_potatoes, inv_chickens, inv_horses, leña
+    if trade_lock:
+        return
+    trade_lock = True
+    if target == None:
+        trade_lock = False
+        return
+    if not (nena.overlapsWith(target)):
+        trade_lock = False
+        return
+    k = target.kind()
+    name = trade_name(k)
+    price = trade_price(k)
+    qty = game.ask_for_number("" + name + ": ¿cuántos quieres?", 2)
+    if qty <= 0:
+        trade_lock = False
+        return
+    cost = price * qty
+    if leña < cost:
+        game.show_long_text("" + """
+                No tienes suficiente leña.
+                Necesitas:
+                """ + ("" + str(cost)) + "\nTienes: " + ("" + str(leña)),
+            DialogLayout.BOTTOM)
+        trade_lock = False
+        return
+    leña += 0 - cost
+    if k == SpriteKind.egg:
+        inv_eggs += qty
+    elif k == SpriteKind.cow:
+        inv_cows += qty
+    elif k == SpriteKind.potato:
+        inv_potatoes += qty
+    elif k == SpriteKind.chicken:
+        inv_chickens += qty
+    elif k == SpriteKind.horse:
+        inv_horses += qty
+    game.show_long_text("Compraste " + ("" + str(qty)) + " " + name + "\nCoste: " + ("" + str(cost)) + " leña" + "\nTe queda: " + ("" + str(leña)),
+        DialogLayout.BOTTOM)
+    trade_lock = False
+controller.A.on_event(ControllerButtonEvent.PRESSED, on_a_pressed)
+
+def trade_name(kind2: number):
+    if kind2 == SpriteKind.egg:
+        return "Huevos"
+    elif kind2 == SpriteKind.cow:
+        return "Vacas"
+    elif kind2 == SpriteKind.potato:
+        return "Patatas"
+    elif kind2 == SpriteKind.chicken:
+        return "Gallinas"
+    elif kind2 == SpriteKind.horse:
+        return "Caballos"
+    else:
+        return "?"
 
 def on_up_pressed():
     animation.run_image_animation(nena,
@@ -231,34 +185,49 @@ def on_up_pressed():
         False)
 controller.up.on_event(ControllerButtonEvent.PRESSED, on_up_pressed)
 
-def on_on_overlap2(sprite2, otherSprite2):
+def on_on_overlap2(sprite22, otherSprite22):
     if controller.A.is_pressed():
+        arbol.set_image(img("""
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ..............ffff..............
+            .............fddddf.............
+            .............fd44df.............
+            .............ffddff.............
+            .............feffef.............
+            .............feeeef.............
+            .............feeeef.............
+            .............feeeef.............
+            ............ffeeeef.............
+            ..........ffeeeeeeeef...........
+            .............feeeffe............
+            ..............fef...............
+            ..............fef...............
+            ...............f................
+            """))
+        pause(2000)
         sprites.destroy(arbol)
 sprites.on_overlap(SpriteKind.player, SpriteKind.tree, on_on_overlap2)
 
-Backpack: miniMenu.MenuSprite = None
-leña = 0
-nena: Sprite = None
-arbol: Sprite = None
-chicken2 = sprites.create(img("""
-        . . . . . . . . . . . . . . . . .
-        . . . . . c c c . . . . . . . . .
-        . . . . c e e e c . . . . . . . .
-        . . . c e e e e e c . . . . . . .
-        . . . c e e c c c . . . . . . . .
-        . . . c e e 1 1 e c . . . c . . .
-        . . . c 1 1 1 1 1 e c c c d c . .
-        . . . c 4 4 c 1 1 1 e e d d c . .
-        . . . 4 4 4 1 1 1 1 1 d e b c . .
-        . . . c e e 1 1 d 1 1 1 b e c . .
-        . . . c 1 1 1 d b 1 1 e b c . . .
-        . . . c d d d d d e e d c . . . .
-        . . . . c d d d d d d c . . . . .
-        . . . . c c c c e e c c . . . . .
-        . . . . c e e 4 4 c c c . . . . .
-        . . . . . c c c c c c . . . . . .
-        """),
-    SpriteKind.chicken)
+chicken2 = sprites.create(assets.image("""
+    chicken
+    """), SpriteKind.chicken)
 egg2 = sprites.create(img("""
         . . . . . . . . . . . . . . . .
         . . . . . . . e e . . . . . . .
@@ -385,23 +354,23 @@ cow2 = sprites.create(img("""
     SpriteKind.cow)
 horse2 = sprites.create(img("""
         .........ff.....
-        ........fccff...
-        ffffffffcccff...
-        ffffffcccccff...
+        ........fccf....
+        ....ffffcccf....
+        ...fffcccccf....
         fffcffcccccff...
         fcfccffcccfff...
         ccfcfcccccccf...
-        ccfcfccffcccff..
-        ccfffcc1ffffff..
-        fffffcc1cfffff..
-        fffffbb1bf1cff..
-        fffcccbbccccff..
+        ccfcfccffcccf...
+        ccfffcc1fffff...
+        fffffcc1cffff...
+        fffffbb1bf1cf...
+        fffcccbbccccf...
         ffffcccccceeff..
         ffffffcceecccf..
         cfff..fceccccf..
-        fff....cecccff..
-        ff....fffccccf..
-        f....ff..ffff...
+        ff.....cecccff..
+        f.....fffccccf..
+        .....ff..ffff...
         ....ff..........
         """),
     SpriteKind.horse)
@@ -440,3 +409,9 @@ tiles.place_on_tile(egg2, tiles.get_tile_location(10, 2))
 tiles.place_on_tile(cow2, tiles.get_tile_location(10, 4))
 tiles.place_on_tile(horse2, tiles.get_tile_location(7, 5))
 tiles.place_on_random_tile(arbol, sprites.castle.tile_grass2)
+tiles.set_wall_at(arbol.tilemap_location(), True)
+sprites.on_overlap(SpriteKind.player, SpriteKind.egg, on_overlap_trade)
+sprites.on_overlap(SpriteKind.player, SpriteKind.cow, on_overlap_trade)
+sprites.on_overlap(SpriteKind.player, SpriteKind.potato, on_overlap_trade)
+sprites.on_overlap(SpriteKind.player, SpriteKind.chicken, on_overlap_trade)
+sprites.on_overlap(SpriteKind.player, SpriteKind.horse, on_overlap_trade)
