@@ -1,5 +1,7 @@
 
 ## Conversor Rural con MakeCode
+[Jugar](https://arcade.makecode.com/S20332-99600-04500-73843)
+
 El juego empieza en un mapa de tiles cerrado donde el personaje principal tiene que talar los arboles que se encuentra para ir recogiendo leña.
 
 <img width="1919" height="905" alt="image" src="https://github.com/user-attachments/assets/38cb42a0-6392-451e-aed7-363b5394f166" />
