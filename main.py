@@ -1,14 +1,37 @@
 @namespace
 class SpriteKind:
+    egg = SpriteKind.create()
+    chicken = SpriteKind.create()
+    cow = SpriteKind.create()
+    potato = SpriteKind.create()
+    horse = SpriteKind.create()
     tree = SpriteKind.create()
     casa = SpriteKind.create()
     tocon = SpriteKind.create()
 
+target: Sprite = None
+leña = 0
+inv_horses = 0
+inv_chickens = 0
+inv_potatoes = 0
+inv_cows = 0
+inv_eggs = 0
+cost = 0
+qty = 0
+price = 0
+name = ""
+k = 0
+trade_lock = False
+Backpack = None
+def on_overlap_trade(player2: Sprite, itemSprite: Sprite):
+    global target
+    target = itemSprite
+
 def on_on_overlap(sprite, otherSprite):
     if controller.A.is_pressed():
-        music.play(music.string_playable("- - - A G - - - ", 120),
-            music.PlaybackMode.UNTIL_DONE)
-        game.show_long_text(leña, DialogLayout.TOP)
+        music.play(music.string_playable("- - - - - A F - ", 200),
+            music.PlaybackMode.IN_BACKGROUND)
+        game.show_long_text("Tienes " + ("" + str(leña)) + " de leña", DialogLayout.TOP)
 sprites.on_overlap(SpriteKind.player, SpriteKind.casa, on_on_overlap)
 
 def on_down_pressed():
@@ -21,7 +44,8 @@ def on_down_pressed():
 controller.down.on_event(ControllerButtonEvent.PRESSED, on_down_pressed)
 
 def on_on_destroyed(sprite3):
-    global leña, arbol
+    global arbol, leña
+    tiles.set_wall_at(arbol.tilemap_location(), False)
     leña += 1
     pause(2000)
     arbol = sprites.create(img("""
@@ -60,7 +84,22 @@ def on_on_destroyed(sprite3):
             """),
         SpriteKind.tree)
     tiles.place_on_random_tile(arbol, sprites.castle.tile_grass2)
+    tiles.set_wall_at(arbol.tilemap_location(), True)
 sprites.on_destroyed(SpriteKind.tree, on_on_destroyed)
+
+def trade_price(kind: number):
+    if kind == SpriteKind.egg:
+        return 3
+    elif kind == SpriteKind.cow:
+        return 5
+    elif kind == SpriteKind.potato:
+        return 2
+    elif kind == SpriteKind.chicken:
+        return 6
+    elif kind == SpriteKind.horse:
+        return 12
+    else:
+        return 999999
 
 def on_right_pressed():
     animation.run_image_animation(nena,
@@ -80,6 +119,63 @@ def on_left_pressed():
         False)
 controller.left.on_event(ControllerButtonEvent.PRESSED, on_left_pressed)
 
+def on_a_pressed():
+    global trade_lock, k, name, price, qty, cost, inv_eggs, inv_cows, inv_potatoes, inv_chickens, inv_horses, leña
+    if trade_lock:
+        return
+    trade_lock = True
+    if target == None:
+        trade_lock = False
+        return
+    if not (nena.overlapsWith(target)):
+        trade_lock = False
+        return
+    k = target.kind()
+    name = trade_name(k)
+    price = trade_price(k)
+    qty = game.ask_for_number("" + name + ": ¿cuántos quieres?", 2)
+    if qty <= 0:
+        trade_lock = False
+        return
+    cost = price * qty
+    if leña < cost:
+        game.show_long_text("" + """
+                No tienes suficiente leña.
+                Necesitas:
+                """ + ("" + str(cost)) + "\nTienes: " + ("" + str(leña)),
+            DialogLayout.BOTTOM)
+        trade_lock = False
+        return
+    leña += 0 - cost
+    if k == SpriteKind.egg:
+        inv_eggs += qty
+    elif k == SpriteKind.cow:
+        inv_cows += qty
+    elif k == SpriteKind.potato:
+        inv_potatoes += qty
+    elif k == SpriteKind.chicken:
+        inv_chickens += qty
+    elif k == SpriteKind.horse:
+        inv_horses += qty
+    game.show_long_text("Compraste " + ("" + str(qty)) + " " + name + "\nCoste: " + ("" + str(cost)) + " leña" + "\nTe queda: " + ("" + str(leña)),
+        DialogLayout.BOTTOM)
+    trade_lock = False
+controller.A.on_event(ControllerButtonEvent.PRESSED, on_a_pressed)
+
+def trade_name(kind2: number):
+    if kind2 == SpriteKind.egg:
+        return "Huevos"
+    elif kind2 == SpriteKind.cow:
+        return "Vacas"
+    elif kind2 == SpriteKind.potato:
+        return "Patatas"
+    elif kind2 == SpriteKind.chicken:
+        return "Gallinas"
+    elif kind2 == SpriteKind.horse:
+        return "Caballos"
+    else:
+        return "?"
+
 def on_up_pressed():
     animation.run_image_animation(nena,
         assets.animation("""
@@ -89,14 +185,68 @@ def on_up_pressed():
         False)
 controller.up.on_event(ControllerButtonEvent.PRESSED, on_up_pressed)
 
-def on_on_overlap2(sprite2, otherSprite2):
+def on_on_overlap2(sprite22, otherSprite22):
     if controller.A.is_pressed():
+        arbol.set_image(img("""
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ................................
+            ..............ffff..............
+            .............fddddf.............
+            .............fd44df.............
+            .............ffddff.............
+            .............feffef.............
+            .............feeeef.............
+            .............feeeef.............
+            .............feeeef.............
+            ............ffeeeef.............
+            ..........ffeeeeeeeef...........
+            .............feeeffe............
+            ..............fef...............
+            ..............fef...............
+            ...............f................
+            """))
+        pause(2000)
         sprites.destroy(arbol)
 sprites.on_overlap(SpriteKind.player, SpriteKind.tree, on_on_overlap2)
 
-leña = 0
-nena: Sprite = None
-arbol: Sprite = None
+chicken2 = sprites.create(assets.image("""
+    chicken
+    """), SpriteKind.chicken)
+egg2 = sprites.create(img("""
+        . . . . . . . . . . . . . . . .
+        . . . . . . . e e . . . . . . .
+        . . . . . . e d d e . . . . . .
+        . . . . . e d d d 4 e . . . . .
+        . . . . e d d 1 1 d 4 e . . . .
+        . . . . e d 1 1 1 d d e . . . .
+        . . . e d 1 1 1 1 d d 4 c . . .
+        . . . e d 1 1 1 1 d d 4 c . . .
+        . . c d d 1 1 1 d d d 4 e c . .
+        . . c 4 d 1 1 d d d 4 e e c . .
+        . . c e 4 d d 4 4 4 e e e c . .
+        . . . c e 4 4 4 4 4 e e c . . .
+        . . . c e e 4 4 4 e e e c . . .
+        . . . . c c e e e e c c . . . .
+        . . . . . . c c c c . . . . . .
+        . . . . . . . . . . . . . . . .
+        """),
+    SpriteKind.egg)
 arbol = sprites.create(img("""
         ...............cc...............
         ............ccc65c66............
@@ -183,6 +333,66 @@ casa2 = sprites.create(img("""
         ......6ccc666c66e4e44e44e44e44ee66c666ccc6......
         """),
     SpriteKind.casa)
+cow2 = sprites.create(img("""
+        . . . . . . . . . . . . . . . .
+        b . . . d d d b b d . c b . . .
+        d b d d 1 1 b 1 1 1 d d b . . .
+        d d c 1 1 1 1 1 1 1 b d c . . .
+        d d 1 1 1 1 1 1 1 b 1 b . . . .
+        c 1 1 1 1 1 1 1 1 1 b b . . . .
+        1 1 1 1 1 1 1 1 1 1 b b b . . .
+        1 b b b 1 1 1 1 1 1 b b d c c .
+        b b b b b 1 1 1 1 1 1 1 d c c c
+        b f f f b 1 1 1 1 f f 1 d c c c
+        b f f f b 1 1 1 1 f f 1 d c c c
+        b f f f c c c c c f f 1 b c c f
+        b c c c c b b b b c 1 1 b f f .
+        1 1 b c c f b b f c 1 1 b . . .
+        b 1 1 f c c c c c f 1 b . . . .
+        1 b b b f f f f f b b . . . . .
+        """),
+    SpriteKind.cow)
+horse2 = sprites.create(img("""
+        .........ff.....
+        ........fccf....
+        ....ffffcccf....
+        ...fffcccccf....
+        fffcffcccccff...
+        fcfccffcccfff...
+        ccfcfcccccccf...
+        ccfcfccffcccf...
+        ccfffcc1fffff...
+        fffffcc1cffff...
+        fffffbb1bf1cf...
+        fffcccbbccccf...
+        ffffcccccceeff..
+        ffffffcceecccf..
+        cfff..fceccccf..
+        ff.....cecccff..
+        f.....fffccccf..
+        .....ff..ffff...
+        ....ff..........
+        """),
+    SpriteKind.horse)
+potato2 = sprites.create(img("""
+        . . . . . . . . . . . . . . . .
+        . . . . . . . . . c c f f . . .
+        . . . . . . . . c 4 4 e c f . .
+        . . . . . . . c 4 4 4 e e c f .
+        . 3 . . . . c e 4 4 e e e c f .
+        . . . . c c e e e e e e c c f .
+        . . . c e 4 4 e e e e c c c f .
+        . . c e 4 4 4 4 e e e e c f . .
+        . c e 4 4 4 4 4 e e e e c f . .
+        . c e 4 4 4 4 e e e e e f . . .
+        . c e e 4 4 e e e e e c f . . .
+        . f e e e e e e e e c f . . . .
+        . f c e e e e e e c f . . . . .
+        . . f c e e c c f f . . . . . .
+        . . . f f f f f . . . . . . . .
+        . . . . . . . . . . . . . . . .
+        """),
+    SpriteKind.potato)
 nena = sprites.create(assets.image("""
     nena-front
     """), SpriteKind.player)
@@ -191,6 +401,17 @@ tiles.set_current_tilemap(tilemap("""
     """))
 controller.move_sprite(nena)
 scene.camera_follow_sprite(nena)
-tiles.place_on_tile(nena, tiles.get_tile_location(2, 2))
+tiles.place_on_tile(nena, tiles.get_tile_location(7, 4))
 tiles.place_on_tile(casa2, tiles.get_tile_location(7, 2))
+tiles.place_on_tile(chicken2, tiles.get_tile_location(4, 2))
+tiles.place_on_tile(potato2, tiles.get_tile_location(4, 4))
+tiles.place_on_tile(egg2, tiles.get_tile_location(10, 2))
+tiles.place_on_tile(cow2, tiles.get_tile_location(10, 4))
+tiles.place_on_tile(horse2, tiles.get_tile_location(7, 5))
 tiles.place_on_random_tile(arbol, sprites.castle.tile_grass2)
+tiles.set_wall_at(arbol.tilemap_location(), True)
+sprites.on_overlap(SpriteKind.player, SpriteKind.egg, on_overlap_trade)
+sprites.on_overlap(SpriteKind.player, SpriteKind.cow, on_overlap_trade)
+sprites.on_overlap(SpriteKind.player, SpriteKind.potato, on_overlap_trade)
+sprites.on_overlap(SpriteKind.player, SpriteKind.chicken, on_overlap_trade)
+sprites.on_overlap(SpriteKind.player, SpriteKind.horse, on_overlap_trade)

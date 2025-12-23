@@ -4,6 +4,11 @@
         "mimeType": "image/x-mkcd-f4",
         "displayName": "nena-front"
     },
+    "image2": {
+        "data": "hwQQABAAAAAAAAAAu8sMAAAAAAC93csAAAAAAN3c3QwAAAAAXcXdywAAsLtb1dzNAAC7VVtV3M0AsFtVvVXbzQCw1dFVvdXNALAV/1VVVc2wu/W/RVVVxVu8VdVEVVXFtbBV3URVVbULANtERFVVuwAA8ExEW9ULAAAAALSwuwAAAAAACwAAAA==",
+        "mimeType": "image/x-mkcd-f4",
+        "displayName": "chicken"
+    },
     "anim1": {
         "namespace": "myAnimations",
         "id": "anim1",
